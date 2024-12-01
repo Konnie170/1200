@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可愛風單字卡遊戲</title>
+    <style>
+        :root {
+            --primary-color: #ffb6c1; /* 淡粉色 */
+            --secondary-color: #ff69b4; /* 熱粉色 */
+            --background-color: #fff0f5; /* 淡紫紅色 */
+            --card-background-color: #ffe4e1; /* 淡珊瑚色 */
+            --text-color: #555555; /* 深灰色 */
+            --border-color: #ff69b4; /* 熱粉色 */
+            --button-hover-color: #ff69b4; /* 熱粉色 */
+            --shadow-color: rgba(255, 182, 193, 0.5); /* 淡粉色陰影 */
+        }
+
+        body {
+            font-family: ans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: auto;
+            color: var(--text-color);
+            position: relative; /* To position the footer text */
+        }
+
+        .container {
+            width: 90%;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--card-background-color);
+            border-radius: 15px;
+            box-shadow: 0 0 10px var(--shadow-color);
+            border: 2px solid var(--border-color);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .word-button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 22px;
+            border: none;
+            border-radius: 15px;
+            background: var(--primary-color);
+            color: var(--text-color);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--shadow-color);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .word-button:hover {
+            background: var(--button-hover-color);
+            color: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--shadow-color);
+        }
+
+        .flashcard-container, .game-container {
+            display: none;
+            width: 90%;
+            height: 80%;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: var(--card-background-color);
+            border-radius: 15px;
+            box-shadow: 0 0 10px var(--shadow-color);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .flashcard-container.show, .game-container.show {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .flashcard {
+            width: 500px;
+            height: 350px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            text-align: center;
+            position: relative;
+            user-select: none;
+            background: var(--primary-color);
+            box-shadow: 0 0 10px var(--shadow-color);
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.8s, background-color 0.5s, box-shadow 0.5s, opacity 0.6s ease, transform 0.6s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            border-radius: 15px;
+        }
+
+        .flashcard.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .flashcard.flip {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-content {
+            position: absolute;
+            backface-visibility: hidden;
+            font-weight: bold;
+            color: var(--text-color);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard img {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+
+        .game-card {
+            width: 150px;
+            height: 100px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            text-align: center;
+            position: relative;
+            user-select: none;
+            background: var(--primary-color);
+            box-shadow: 0 0 10px var(--shadow-color);
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.8s, background-color 0.5s, box-shadow 0.5s;
+            margin: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            border-radius: 15px;
+        }
+
+        .game-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .game-card.flip {
+            transform: rotateY(180deg);
+        }
+
+        .game-card-content {
+            position: absolute;
+            backface-visibility: hidden;
+            font-weight: bold;
+            color: var(--text-color);
+            border-radius: 15px;
+        }
+
+        .game-card-back {
+            transform: rotateY(180deg);
+        }
+
+        .timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .message {
+            position: absolute;
+            top: -40px; /* Adjusted position */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .buttons {
+            margin-top: 20px;
+        }
+
+        .buttons button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background: var(--secondary-color);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--shadow-color);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .buttons button:hover {
+            background: var(--button-hover-color);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--shadow-color);
+        }
+
+        .footer-text {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer; /* Add cursor pointer for clickable indication */
+        }
+
+        .footer-text a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Transparent clickable area */
+        .clickable-area {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 50px;
+            height: 50px;
+            background-color: transparent;
+            cursor: pointer;
+        }
+
+        /* Input page styles */
+        .input-page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: var(--card-background-color);
+            color: var(--text-color);
+            padding: 20px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .input-page.show {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .input-page h1 {
+            font-size: 30px;
+            margin-bottom: 20px;
+        }
+
+        .input-page textarea {
+            width: 70%;
+            height: 200px;
+            background: #fff;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 18px;
+            resize: none;
+        }
+
+        .input-page button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background: var(--secondary-color);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--shadow-color);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-page button:hover {
+            background: var(--button-hover-color);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--shadow-color);
+        }
+
+        .output-table-container {
+            width: 70%;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .output-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .output-table th, .output-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .output-table th {
+            background-color: var(--primary-color);
+        }
+
+        /* Popup window for file selection */
+        .file-selection-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-background-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--shadow-color);
+            z-index: 1000;
+            display: none;
+            color: var(--text-color);
+        }
+
+        .file-selection-popup.show {
+            display: block;
+        }
+
+        .file-selection-popup button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background: var(--secondary-color);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--shadow-shadow);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .file-selection-popup button:hover {
+            background: var(--button-hover-color);
+            box-shadow: 0 0 20px var(--shadow-shadow);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainPage">
+    <div class="button-container" id="buttonContainer">
+        <!-- Buttons will be dynamically updated -->
+    </div>
+    <div class="buttons">
+        <button id="flipGameBtn">翻牌遊戲</button>
+    </div>
+</div>
+
+<div class="flashcard-container" id="flashcardContainer">
+    <div class="flashcard" id="flashcard">
+        <div class="flashcard-content flashcard-front">
+            <span id="word"></span>
+        </div>
+        <div class="flashcard-content flashcard-back">
+            <span id="translation"></span>
+        </div>
+        <img src="https://img.icons8.com/ios-filled/50/000000/speaker.png" id="speak" alt="Speak">
+    </div>
+
+    <div class="buttons">
+        <button id="prevBtn">上一個</button>
+        <button id="nextBtn">下一個</button>
+        <button id="backBtn">回上一頁</button>
+    </div>
+</div>
+
+<div class="game-container" id="gameContainer">
+    <div class="message" id="message">預計 10 秒後蓋牌</div>
+    <div class="timer" id="timer">00:00</div>
+    <div class="countdown" id="countdown">10</div>
+    <!-- Flip card game content will be dynamically added here -->
+</div>
+
+<div class="footer-text" id="loadFilesButton">
+    Made by <a href="#">阿剛老師</a>
+</div>
+
+<!-- Transparent clickable area -->
+<div class="clickable-area" id="clickableArea"></div>
+
+<!-- Input page for question input -->
+<div class="input-page" id="inputPage">
+    <h1>題庫輸入區</h1>
+    <textarea id="inputTextarea" placeholder="在此輸入題目，每行用英文,中文格式">上午	a.m.
+下午	p.m.
+可以	OK
+體育	PE
+中華民國	R O C(R.O.C.)
+美國	USA(U.S.A.)
+行為;扮演	act
+和	and
+螞蟻	ant
+與…一樣	as
+問	ask
+在	at
+背後	back
+壞的;不好的	bad
+袋子	bag
+樂團	band
+蝙蝠	bat
+床	bed
+鈴	bell
+皮帶	belt
+大的;年齡大的	big
+盒子	box
+小蟲	bug
+小圓麵包	bun
+公車	bus
+</textarea>
+    <button id="submitBtn">送出</button>
+    <div class="output-table-container" id="outputTableContainer">
+        <table class="output-table" id="outputTable">
+            <thead>
+                <tr>
+                    <th>英文</th>
+                    <th>中文</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+    <button id="startGameBtn" style="display: none;">開始遊玩</button>
+    <button id="downloadBtn">下載完整遊戲</button>
+</div>
+
+<!-- Popup window for file selection -->
+<div class="file-selection-popup" id="fileSelectionPopup"></div>
+
+<script>
+    const defaultWords = [
+        {english: "School", chinese: "學校"},
+        {english: "Student", chinese: "學生"},
+        {english: "Homework", chinese: "作業"},
+        {english: "Classroom", chinese: "教室"},
+        {english: "Pen", chinese: "筆"},
+        {english: "Book", chinese: "書"}
+    ];
+
+    let words = [...defaultWords];
+
+    const buttonContainer = document.getElementById('buttonContainer');
+    const gameContainer = document.getElementById('gameContainer');
+    const flashcardContainer = document.getElementById('flashcardContainer');
+    const flashcard = document.getElementById('flashcard');
+    const wordElement = document.getElementById('word');
+    const translationElement = document.getElementById('translation');
+    const speakButton = document.getElementById('speak');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const backBtn = document.getElementById('backBtn');
+    const flipGameBtn = document.getElementById('flipGameBtn');
+    const timerElement = document.getElementById('timer');
+    const countdownElement = document.getElementById('countdown');
+    const messageElement = document.getElementById('message');
+    const clickableArea = document.getElementById('clickableArea');
+    const inputPage = document.getElementById('inputPage');
+    const mainPage = document.getElementById('mainPage');
+    const inputTextarea = document.getElementById('inputTextarea');
+    const outputTable = document.getElementById('outputTable').querySelector('tbody');
+    const startGameBtn = document.getElementById('startGameBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const loadFilesButton = document.getElementById('loadFilesButton');
+    const fileSelectionPopup = document.getElementById('fileSelectionPopup');
+    let timerInterval;
+
+    let currentIndex = 0;
+
+    // Load the flip sound effect
+    const flipSound = new Audio("https://downsc.chinaz.net/Files/DownLoad/sound1/202312/y2387.mp3");
+    flipSound.preload = 'auto';
+
+    // Ensure the sound is ready to play
+    function playFlipSound() {
+        flipSound.play().catch(() => {
+            // In case of a play error, catch and handle it here
+            document.addEventListener('click', () => {
+                flipSound.play();
+            }, { once: true });
+        });
+    }
+
+    function updateCard() {
+        playFlipSound();  // Play sound on card update
+        flashcard.classList.remove('show');
+        flashcard.classList.remove('flip'); // Always ensure it shows the front side
+        setTimeout(() => {
+            wordElement.textContent = words[currentIndex].english;
+            translationElement.textContent = words[currentIndex].chinese;
+            flashcard.classList.add('show');
+        }, 300);  // Duration of the transition effect
+    }
+
+    function speakText(text, lang) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        speechSynthesis.speak(utterance);
+    }
+
+    function updateButtons() {
+        buttonContainer.innerHTML = "";
+        words.forEach((word, index) => {
+            const button = document.createElement('button');
+            button.className = 'word-button';
+            button.textContent = word.english;
+            button.setAttribute('data-index', index);
+            button.addEventListener('click', () => {
+                currentIndex = index;
+                playFlipSound();  // Play sound when switching to flashcard view
+                buttonContainer.parentElement.classList.remove('show');
+                setTimeout(() => {
+                    buttonContainer.parentElement.style.display = 'none';
+                    flipGameBtn.style.display = 'none';
+                    flashcardContainer.classList.add('show');
+                    flashcardContainer.style.display = 'flex';
+                    updateCard();
+                }, 600);
+            });
+            buttonContainer.appendChild(button);
+        });
+    }
+
+    function submitData() {
+        const inputText = inputTextarea.value.trim();
+        if (!inputText) return;
+
+        const newWords = inputText.split('\n').map(line => {
+            const [english, chinese] = line.split(/,|\t/).map(item => item.trim());
+            return {english, chinese};
+        });
+
+        // Clear the previous table content and add new words
+        outputTable.innerHTML = '';
+        newWords.forEach(word => {
+            const row = document.createElement('tr');
+            const englishCell = document.createElement('td');
+            const chineseCell = document.createElement('td');
+            englishCell.textContent = word.english;
+            chineseCell.textContent = word.chinese;
+            row.appendChild(englishCell);
+            row.appendChild(chineseCell);
+            outputTable.appendChild(row);
+        });
+
+        // Update words and refresh the buttons and game cards
+        words = newWords;
+        updateButtons();
+        startGameBtn.style.display = 'block'; // Show the start game button
+    }
+
+    flashcard.addEventListener('click', () => {
+        flashcard.classList.toggle('flip');
+        playFlipSound();  // Play sound on card flip
+    });
+
+    speakButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevents flipping the card
+        if (flashcard.classList.contains('flip')) {
+            speakText(translationElement.textContent, 'zh-TW');
+        } else {
+            speakText(wordElement.textContent, 'en-US');
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateCard();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentIndex < words.length - 1) {
+            currentIndex++;
+            updateCard();
+        }
+    });
+
+    backBtn.addEventListener('click', () => {
+        playFlipSound();  // Play sound when returning to main view
+        flashcardContainer.classList.remove('show');
+        setTimeout(() => {
+            flashcardContainer.style.display = 'none';
+            buttonContainer.parentElement.style.display = 'flex';
+            buttonContainer.parentElement.classList.add('show');
+            flipGameBtn.style.display = 'block';
+        }, 600);
+    });
+
+    // Flip game functionality
+
+    function startFlipGame() {
+        // 隨機選取最多10個單字
+        let gameWords = [];
+        if (words.length > 10) {
+            const shuffledWords = words.sort(() => 0.5 - Math.random());
+            gameWords = shuffledWords.slice(0, 10);
+        } else {
+            gameWords = [...words];
+        }
+
+        playFlipSound();  // Play sound when starting flip game
+        buttonContainer.parentElement.classList.remove('show');
+        setTimeout(() => {
+            buttonContainer.parentElement.style.display = 'none';
+            flipGameBtn.style.display = 'none';
+            gameContainer.classList.add('show');
+            gameContainer.style.display = 'flex';
+            createGameCards(gameWords);  // 傳入選取的單字列表
+            startCountdown(10);  // Start countdown from 10 seconds
+        }, 600);
+    }
+
+    function startCountdown(seconds) {
+        countdownElement.textContent = seconds;
+        messageElement.textContent = `預計 ${seconds} 秒後蓋牌`;
+
+        const countdownInterval = setInterval(() => {
+            seconds--;
+            countdownElement.textContent = seconds;
+            messageElement.textContent = `預計 ${seconds} 秒後蓋牌`;
+
+            if (seconds <= 0) {
+                clearInterval(countdownInterval);
+                countdownElement.style.display = 'none';
+                messageElement.style.display = 'none';
+                hideAllCards();
+                startTimer();
+            }
+        }, 1000);
+    }
+
+    function createGameCards(gameWords) {
+        const cards = [];
+        gameWords.forEach(word => {
+            cards.push({text: word.english, pair: word.chinese});
+            cards.push({text: word.chinese, pair: word.english});
+        });
+        const shuffledCards = cards.sort(() => 0.5 - Math.random());
+        shuffledCards.forEach(cardData => {
+            const card = document.createElement('div');
+            card.classList.add('game-card');
+            card.innerHTML = `<div class="game-card-content">${cardData.text}</div>`;
+            card.dataset.pair = cardData.pair;
+            card.addEventListener('click', () => flipCard(card));
+            gameContainer.appendChild(card);
+            setTimeout(() => {
+                card.classList.add('show');
+            }, 10);
+        });
+    }
+
+    function hideAllCards() {
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.classList.add('flip');
+        });
+    }
+
+    let flippedCards = [];
+    let matchesFound = 0;
+    let startTime;
+
+    function flipCard(card) {
+        if (flippedCards.length < 2 && card.classList.contains('flip')) {
+            card.classList.remove('flip');
+            flippedCards.push(card);
+            playFlipSound();  // Play sound on each flip
+            if (flippedCards.length === 2) {
+                checkForMatch();
+            }
+        }
+    }
+
+    function checkForMatch() {
+        const [firstCard, secondCard] = flippedCards;
+        if (firstCard.dataset.pair === secondCard.textContent.trim() && 
+            secondCard.dataset.pair === firstCard.textContent.trim()) {
+            setTimeout(() => {
+                firstCard.style.visibility = 'hidden';
+                secondCard.style.visibility = 'hidden';
+                matchesFound += 1;
+                flippedCards = [];
+                if (matchesFound === Math.min(words.length, 10)) {
+                    setTimeout(endGame, 500);
+                }
+            }, 500);
+        } else {
+            setTimeout(() => {
+                firstCard.classList.add('flip');
+                secondCard.classList.add('flip');
+                flippedCards = [];
+            }, 1000);
+        }
+    }
+
+    function startTimer() {
+        startTime = new Date();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+        const elapsedTime = Math.round((new Date() - startTime) / 1000);
+        const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
+        const seconds = String(elapsedTime % 60).padStart(2, '0');
+        timerElement.textContent = `${minutes}:${seconds}`;
+    }
+
+    function endGame() {
+        clearInterval(timerInterval);
+        const endTime = new Date();
+        const timeTaken = Math.round((endTime - startTime) / 1000);
+        alert(`遊戲完成！總共花了 ${timeTaken} 秒`);
+        resetGame();
+    }
+
+    function resetGame() {
+        gameContainer.innerHTML = '<div class="message" id="message">預計 10 秒後蓋牌</div><div class="timer" id="timer">00:00</div><div class="countdown" id="countdown">10</div>';
+        matchesFound = 0;
+        flippedCards = [];
+        buttonContainer.parentElement.style.display = 'flex';
+        buttonContainer.parentElement.classList.add('show');
+        flipGameBtn.style.display = 'block';
+        gameContainer.style.display = 'none';
+        gameContainer.classList.remove('show');
+        clearInterval(timerInterval);
+    }
+
+    flipGameBtn.addEventListener('click', startFlipGame);
+
+    // Input page switching
+    function showInputPage() {
+        mainPage.classList.remove('show');
+        setTimeout(() => {
+            mainPage.style.display = 'none';
+            inputPage.classList.add('show');
+            inputPage.style.display = 'flex';
+        }, 600);
+    }
+
+    clickableArea.addEventListener('click', showInputPage);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'r') {
+            showInputPage();
+        }
+    });
+
+    // Submit new words
+    submitBtn.addEventListener('click', () => {
+        submitData();
+    });
+
+    // Start the game with the new words
+    startGameBtn.addEventListener('click', () => {
+        inputPage.classList.remove('show');
+        setTimeout(() => {
+            inputPage.style.display = 'none';
+            mainPage.classList.add('show');
+            mainPage.style.display = 'flex';
+        }, 600);
+    });
+
+    // Auto submit and start game if data exists
+    window.addEventListener('load', () => {
+        loadWordsFromUrl();
+        if (inputTextarea.value.trim() !== "") {
+            submitData();
+            startGameBtn.click(); // Automatically start the game
+        }
+    });
+
+    // Download the complete game with the current input
+    downloadBtn.addEventListener('click', () => {
+        const originalHtml = document.documentElement.outerHTML;
+        const updatedHtml = originalHtml.replace(
+            /<textarea id="inputTextarea"[^>]*>[\s\S]*?<\/textarea>/,
+            `<textarea id="inputTextarea" placeholder="在此輸入題目，每行用英文,中文格式">${inputTextarea.value}</textarea>`
+        );
+
+        const blob = new Blob([updatedHtml], {type: 'text/html'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'custom_game.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // Load words from URL if data exists and populate textarea
+    function loadWordsFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('data');
+        if (dataParam) {
+            const formattedText = dataParam.split(';').map(item => {
+                const [english, chinese] = item.split(',').map(i => i.trim());
+                return `${english},${chinese}`;
+            }).join('\n');
+            inputTextarea.value = formattedText;
+        }
+    }
+
+    // Load text files into textarea
+    loadFilesButton.addEventListener('click', async () => {
+        let fileIndex = 1;
+        let fileList = [];
+
+        // Check for existence of eng1.txt, eng2.txt, ...
+        while (true) {
+            try {
+                const response = await fetch(`eng${fileIndex}.txt`);
+                if (response.ok) {
+                    fileList.push(`eng${fileIndex}.txt`);
+                    fileIndex++;
+                } else {
+                    break;
+                }
+            } catch {
+                break;
+            }
+        }
+
+        if (fileList.length === 0) {
+            alert('沒有找到任何 txt 文件。');
+            return;
+        }
+
+        // Display the popup for file selection
+        fileSelectionPopup.innerHTML = ''; // Clear previous buttons
+        fileList.forEach(file => {
+            const button = document.createElement('button');
+            button.textContent = file;
+            button.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(file);
+                    const text = await response.text();
+                    inputTextarea.value = text;
+                    submitData();
+                    fileSelectionPopup.classList.remove('show');
+                } catch {
+                    alert('載入文件失敗。');
+                }
+            });
+            fileSelectionPopup.appendChild(button);
+        });
+
+        fileSelectionPopup.classList.add('show'); // Show the popup
+    });
+
+    // Show the initial container with effect
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            mainPage.classList.add('show');
+        }, 100);
+    });
+</script>
+
+
+
+
+</body></html>
